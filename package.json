@@ -19,6 +19,7 @@
   "dependencies": {
     "react": "^16.8.5",
     "react-dom": "^16.8.5",
+    "uuid": "^7.0.3",
     "websocket": "^1.0.31"
   },
   "devDependencies": {
