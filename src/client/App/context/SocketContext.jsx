@@ -2,42 +2,63 @@ import React from 'react';
 
 export const Context = React.createContext({});
 
-export const SocketContextProvider = Context.Provider;
-
-export const SocketContextConsumer = Context.Consumer;
-
 const initialState = {
-    socket: undefined,
+    socket: {},
     connected: false,
     send: () => {},
-    registerListener: () => {},
+    subscribe: () => {},
     close: () => {},
 };
 
 export default (props) => {
     const { children } = props;
-    const [socketState, setSocketState] = React.useState(initialState);
+    const [socket, setSocket] = React.useState();
+    const [contextState, setContextState] = React.useState(initialState);
+
+    const sendHandler = (message) => {
+        socket.send(JSON.stringify(message));
+    };
+
+    const addListenerHandler = (handler) => {
+        socket.addEventListener('message', ({ data }) => {
+            try {
+                handler(JSON.parse(data))
+            } catch(error) {
+                console.error(error);
+            }
+        })
+    };
 
     React.useEffect(() => {
         const socket = new WebSocket('ws://localhost:8081');
-        setSocketState({ ...socketState, socket });
-        socket.onopen = () => {
-            setSocketState({ ...socketState, connected: true });
-        };
-        socket.onerror = (error) => {
-            console.error(error);
-        };
-        socket.onclose = () => {
-            setSocketState({ ...socketState, connected: false });
-        }
+        setSocket(socket);
         return () => {
             socket.close();
         }
-    }, [])
+    }, [setSocket]);
+
+    React.useEffect(() => {
+        if (socket) {
+            socket.onopen = () => {
+                setContextState(prevState => ({ ...prevState, connected: true }));
+            };
+            socket.onerror = (error) => {
+                console.error(error);
+            };
+            socket.onclose = () => {
+                setContextState(prevState => ({ ...prevState, connected: false }));
+            }
+            setContextState(prevState => ({
+                ...prevState,
+                send: sendHandler,
+                subscribe: addListenerHandler
+            }));
+        }
+    }, [socket]);
 
     return (
-        <SocketContextProvider value={socketState}>
+        <Context.Provider value={contextState}>
             {children}
-        </SocketContextProvider>
+        </Context.Provider>
     );
 };
