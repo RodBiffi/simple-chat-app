@@ -7,28 +7,6 @@ const messageTypes = {
     DELETE: 'delete',
 };
 
-const addMessage = (send) => (message) => {
-    send({
-        type: messageTypes.ADD,
-        message,
-    });
-};
-
-const editMessage = (sendHandler) => (message) => {
-    sendHandler({
-        type: messageTypes.EDIT,
-        id: message.id,
-        message,
-    });
-};
-
-const deleteMessage = (sendHandler) => (message) => {
-    sendHandler({
-        type: messageTypes.DELETE,
-        id: message.id,
-    });
-};
-
 const contextInitialState = {
     messages: [],
     addMessage: () => {},
@@ -47,8 +25,8 @@ export default (props) => {
         setContextState(prevState => ({
             ...prevState,
             addMessage,
-            editMessage: editMessage(send),
-            deleteMessage: deleteMessage(send),
+            editMessage,
+            deleteMessage,
         }));
     }, [send, setContextState]);
 
@@ -65,6 +43,21 @@ export default (props) => {
         send({
             type: messageTypes.ADD,
             message,
+        });
+    };
+
+    const editMessage = (id, message) => {
+        send({
+            type: messageTypes.EDIT,
+            id,
+            message,
+        });
+    };
+
+    const deleteMessage = (id) => {
+        send({
+            type: messageTypes.DELETE,
+            id,
         });
     };
 
